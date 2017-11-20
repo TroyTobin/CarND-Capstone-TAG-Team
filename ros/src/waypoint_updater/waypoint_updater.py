@@ -1,10 +1,14 @@
 #!/usr/bin/env python
 
 import rospy
+import math
+
 from geometry_msgs.msg import PoseStamped
 from styx_msgs.msg import Lane, Waypoint
+from tf.transformations import euler_from_quaternion
 
-import math
+import numpy as np
+
 
 '''
 This node will publish waypoints from the car's current position to some `x` distance ahead.
@@ -21,7 +25,7 @@ as well as to verify your TL classifier.
 TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
-LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this number
+LOOKAHEAD_WPS = 30 # Number of waypoints we will publish. You can change this number
 
 
 class WaypointUpdater(object):
@@ -29,7 +33,7 @@ class WaypointUpdater(object):
         rospy.init_node('waypoint_updater')
 
         rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
-        rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
+        self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
 
         # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
 
@@ -37,16 +41,101 @@ class WaypointUpdater(object):
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
         # TODO: Add other member variables you need below
+        # Save all waypoints
+        self.waypoints = None
+        # Save previous pose and waypoint
+        self.prev_pose = None
+        self.prev_wp = None
 
         rospy.spin()
 
     def pose_cb(self, msg):
         # TODO: Implement
-        pass
+        if (self.waypoints is None):
+            rospy.logwarn('Waypoints not received before pose update')
+            return
+
+        if (self.prev_pose == msg.pose):
+            next_wp = self.prev_wp
+            rospy.loginfo('Pose unchanged!')
+        else:
+            # Pose update received -> get next waypoint
+            next_wp = self.next_waypoint(self.waypoints, msg.pose)
+            rospy.loginfo('Current pose ({}, {}) next waypoint ({}, {})'.format(msg.pose.position.x,
+                                                                                msg.pose.position.y,
+                                                                                self.waypoints[next_wp].pose.pose.position.x,
+                                                                                self.waypoints[next_wp].pose.pose.position.y))
+
+            # Save next waypoint for next iteration if pose is not updated
+            self.prev_wp = next_wp
+
+            # Save current pose to check if it got updated on the next iteration
+            self.prev_pose = msg.pose
+
+        # Get the final waypoints from current lane
+        final_waypoints = Lane()
+
+        # Extend the waypoints with the calculated next waypoint + the defined lookahead
+        for i in range(next_wp, next_wp + LOOKAHEAD_WPS):
+            final_waypoints.waypoints.append(self.waypoints[i])
+
+        # Publish the complete waypoint list
+        self.final_waypoints_pub.publish(final_waypoints)
 
     def waypoints_cb(self, waypoints):
         # TODO: Implement
-        pass
+        # Waypoints need to be received just once!
+        if self.waypoints is None:
+            self.waypoints = waypoints.waypoints
+            rospy.loginfo('Waypoints received!')
+            self.base_waypoints_sub.unregister()
+
+    def closest_waypoint(self, waypoints, pose):
+        # Init vars to capture closest waypoint
+        closest_wp = 0
+        closest_dist = 10000
+
+        # Find closest waypoint to current pose by checking distance to all waypoints
+        for i in range(len(waypoints)):
+            dist = self.distance(waypoints[i].pose.pose.position,
+                                 pose.position)
+
+            # Compare distance and update if new minimum has been found
+            if (dist < closest_dist):
+                closest_wp = i
+                closest_dist = dist
+
+        # Return the found waypoint
+        return closest_wp
+
+    def next_waypoint(self, waypoints, pose):
+        # Find the closest waypoint
+        closest_wp = self.closest_waypoint(waypoints, pose)
+
+        # We don't know yet, if the closest waypoint is ahead or behind.
+        # Therefore, we have to calculate the heading of the car and compare it to the car's yaw!
+        closest_waypoint_x = waypoints[closest_wp].pose.pose.position.x
+        closest_waypoint_y = waypoints[closest_wp].pose.pose.position.y
+        pose_x = pose.position.x
+        pose_y = pose.position.y
+        heading = math.atan2(closest_waypoint_y - pose_y,
+                             closest_waypoint_x - pose_x)
+
+        # We can the following transformation to converr from quaternions provided by
+        # an odometry message to Euler angles (roll, pitch and yaw).
+        # Check: http://www.theconstructsim.com/ros-qa-convert-quaternions-euler-angles
+        (roll, pitch, yaw) = euler_from_quaternion(np.array([pose.orientation.x,
+                                                             pose.orientation.y,
+                                                             pose.orientation.z,
+                                                             pose.orientation.w]))
+
+        # Now we can check if the closest waypoint is ahead or behind
+        if (abs(yaw - heading)) > (math.pi / 4):
+            # Waypoint is behind so use the next one
+            closest_wp += 1
+
+        # Return the closest waypoint ahead
+        return closest_wp
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
@@ -62,12 +151,13 @@ class WaypointUpdater(object):
     def set_waypoint_velocity(self, waypoints, waypoint, velocity):
         waypoints[waypoint].twist.twist.linear.x = velocity
 
-    def distance(self, waypoints, wp1, wp2):
+    def distance(self, wp1, wp2):
         dist = 0
         dl = lambda a, b: math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2  + (a.z-b.z)**2)
-        for i in range(wp1, wp2+1):
-            dist += dl(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position)
-            wp1 = i
+        dist = dl(wp1, wp2)
+        #for i in range(wp1, wp2+1):
+        #    dist += dl(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position)
+        #    wp1 = i
         return dist
 
 
