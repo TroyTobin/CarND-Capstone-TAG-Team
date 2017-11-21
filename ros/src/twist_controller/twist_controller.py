@@ -13,7 +13,7 @@ class Controller(object):
         # Init yaw controller with values from DBW node init
         self.yaw_controller = YawController(args[0],    # wheel_base
                                             args[1],    # steer_ratio
-                                            0.0,        # min_speed
+                                            ONE_MPH,    # min_speed
                                             args[2],    # max_lat_accel
                                             args[3])    # max_steer_angle
 
