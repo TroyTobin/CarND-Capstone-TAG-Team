@@ -5,6 +5,7 @@ import math
 
 from geometry_msgs.msg import PoseStamped
 from styx_msgs.msg import Lane, Waypoint
+from std_msgs.msg import Int32
 from tf.transformations import euler_from_quaternion
 
 import numpy as np
@@ -36,7 +37,7 @@ class WaypointUpdater(object):
         self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
 
         # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
-
+        rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb, queue_size=1)
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
@@ -46,6 +47,9 @@ class WaypointUpdater(object):
         # Save previous pose and waypoint
         self.prev_pose = None
         self.prev_wp = None
+
+        # Save next red traffic light waypoint
+        self.red_tl_wp = None
 
         rospy.spin()
 
@@ -74,6 +78,10 @@ class WaypointUpdater(object):
 
         # Get the final waypoints from current lane
         final_waypoints = Lane()
+
+        # Debug print that prints red traffic light waypoint
+        # if self.red_tl_wp != None:
+        #     rospy.logwarn('TL wp {}'.format(self.red_tl_wp))
 
         # Extend the waypoints with the calculated next waypoint + the defined lookahead
         for i in range(next_wp, next_wp + LOOKAHEAD_WPS):
@@ -139,7 +147,10 @@ class WaypointUpdater(object):
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
-        pass
+        if msg.data != -1:
+            self.red_tl_wp = msg.data
+        else:
+            self.red_tl_wp = None
 
     def obstacle_cb(self, msg):
         # TODO: Callback for /obstacle_waypoint message. We will implement it later
