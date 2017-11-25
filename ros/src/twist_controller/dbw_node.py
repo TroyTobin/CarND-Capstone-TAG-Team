@@ -65,7 +65,10 @@ class DBWNode(object):
                                      max_lat_accel,
                                      max_steer_angle,
                                      decel_limit,
-                                     accel_limit)
+                                     accel_limit,
+                                     vehicle_mass,
+                                     fuel_capacity,
+                                     wheel_radius)
 
         # TODO: Subscribe to all the topics you need to 
         rospy.Subscriber("/current_velocity", TwistStamped, self.current_velocity_cb, queue_size=1)
@@ -94,6 +97,12 @@ class DBWNode(object):
                                                                     self.current_velocity.linear.x,
                                                                     self.dbw_enabled)
 
+                # rospy.logwarn('trottle {:7.2f}, brake {:7.2f}, prop {:7.2f}, curr {:7.2f}'.format(
+                #               throttle,
+                #               brake,
+                #               self.proposed_velocity.linear.x,
+                #               self.current_velocity.linear.x))
+
                 if self.dbw_enabled:
                     # Publish new values
                     self.publish(throttle, brake, steering)
@@ -106,20 +115,20 @@ class DBWNode(object):
         tcmd.enable = True
         tcmd.pedal_cmd_type = ThrottleCmd.CMD_PERCENT
         tcmd.pedal_cmd = throttle
-        rospy.loginfo('Throttle: {}'.format(throttle))
+        #rospy.loginfo('Throttle: {}'.format(throttle))
         self.throttle_pub.publish(tcmd)
 
         scmd = SteeringCmd()
         scmd.enable = True
         scmd.steering_wheel_angle_cmd = steer
-        rospy.loginfo('Steer: {}'.format(steer))
+        #rospy.loginfo('Steer: {}'.format(steer))
         self.steer_pub.publish(scmd)
 
         bcmd = BrakeCmd()
         bcmd.enable = True
         bcmd.pedal_cmd_type = BrakeCmd.CMD_TORQUE
         bcmd.pedal_cmd = brake
-        rospy.loginfo('Brake: {}'.format(brake))
+        #rospy.loginfo('Brake: {}'.format(brake))
         self.brake_pub.publish(bcmd)
 
     def dbw_enable_cb(self, msg):

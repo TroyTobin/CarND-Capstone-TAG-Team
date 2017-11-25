@@ -7,6 +7,7 @@ from geometry_msgs.msg import PoseStamped
 from styx_msgs.msg import Lane, Waypoint
 from std_msgs.msg import Int32
 from tf.transformations import euler_from_quaternion
+from copy import deepcopy
 
 import numpy as np
 
@@ -26,7 +27,7 @@ as well as to verify your TL classifier.
 TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
-LOOKAHEAD_WPS = 30 # Number of waypoints we will publish. You can change this number
+LOOKAHEAD_WPS = 50 # Number of waypoints we will publish. You can change this number
 
 
 class WaypointUpdater(object):
@@ -76,16 +77,40 @@ class WaypointUpdater(object):
             # Save current pose to check if it got updated on the next iteration
             self.prev_pose = msg.pose
 
+
+        # Init falg to slow down vehicle
+        enable_slow_down = False
+
         # Get the final waypoints from current lane
         final_waypoints = Lane()
 
-        # Debug print that prints red traffic light waypoint
-        # if self.red_tl_wp != None:
-        #     rospy.logwarn('TL wp {}'.format(self.red_tl_wp))
+        # Get final waypoint number
+        final_wp = next_wp + LOOKAHEAD_WPS
 
-        # Extend the waypoints with the calculated next waypoint + the defined lookahead
-        for i in range(next_wp, next_wp + LOOKAHEAD_WPS):
-            final_waypoints.waypoints.append(self.waypoints[i])
+        # Check if a red TL is in the upcoming waypoints
+        if self.red_tl_wp is not None and self.red_tl_wp <= final_wp:
+            # Last waypoint is either the max number of lookahead waypoints or the red TL waypoint
+            final_wp = self.red_tl_wp
+            if self.red_tl_wp >= next_wp:
+                # Red TL in our way so slow down vehicle
+                enable_slow_down = True
+
+        # Copy waypoints in range - use deep copy as we don't want to change the original waypoints!
+        for i in range(next_wp, final_wp):
+            final_waypoints.waypoints.append(deepcopy(self.waypoints[i]))
+
+        # Slow down vehicle by very simple step function
+        if enable_slow_down:
+            length_final_wp = final_wp - next_wp
+            factor = 1.0
+            j = 0
+            for i in range(length_final_wp):
+                j += 1
+                final_waypoints.waypoints[-1-i].twist.twist.linear.x -= final_waypoints.waypoints[-1-i].twist.twist.linear.x * factor
+                if j == (LOOKAHEAD_WPS/10.0):
+                    j = 0
+                    factor -= 0.2
+
 
         # Publish the complete waypoint list
         self.final_waypoints_pub.publish(final_waypoints)
