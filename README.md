@@ -4,13 +4,12 @@ Working:
 * Car keeps reasonable speed
 * TL detector publishes next red traffic light
 * TL state is currently taken from simulator ground truth
+* Stopping at red TLs (brake torque corrected - works with simple step function)
 
 To be done:
 1. TL classifier
-2. Stopping at red TLs
-3. Closer look to keeping the speed limit
-4. Fine tuning, smoothing of acceleration and braking (add car's parameter, weight, wheel base etc) and probably steering
-5. Fix waypoint ID handling for 2nd lap (fix wrapping)
+2. Fine tuning, smoothing of acceleration and braking and maybe steering
+3. Fix waypoint ID handling for 2nd lap (fix wrapping)
 
 Open questions:
 1. How do we decide if the next TL is visible? Just by comparing the distance of the car to the next TL?
