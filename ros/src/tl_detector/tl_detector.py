@@ -35,6 +35,12 @@ class TLDetector(object):
         self.camera_image = None
         self.lights = []
 
+        # Save all waypoints
+        self.waypoints = None
+
+        # Save traffic lights/stop line positions as waypoints
+        self.tl_waypoints= []
+
         sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         self.sub2 = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
 
@@ -61,12 +67,6 @@ class TLDetector(object):
         self.last_state = TrafficLight.UNKNOWN
         self.last_wp = -1
         self.state_count = 0
-
-        # Save all waypoints
-        self.waypoints = None
-
-        # Save traffic lights/stop line positions as waypoints
-        self.tl_waypoints= []
 
         rospy.spin()
 
