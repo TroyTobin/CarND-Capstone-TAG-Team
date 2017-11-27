@@ -37,6 +37,7 @@ class WaypointUpdater(object):
         # TODO: Add other member variables you need below
         # Save all waypoints
         self.waypoints = None
+        self.max_waypoint_index = None
         # Save previous pose and waypoint
         self.prev_pose = None
         self.prev_wp = None
@@ -96,8 +97,14 @@ class WaypointUpdater(object):
                 enable_slow_down = True
 
         # Copy waypoints in range - use deep copy as we don't want to change the original waypoints!
-        for i in range(next_wp, final_wp):
-            final_waypoints.waypoints.append(deepcopy(self.waypoints[i]))
+        waypoint_index = next_wp
+        for i in range(waypoint_index, final_wp):
+            final_waypoints.waypoints.append(deepcopy(self.waypoints[waypoint_index]))
+            # Handle wrapping within waypoint list
+            if waypoint_index == self.max_waypoint_index:
+                waypoint_index = 0
+            else:
+                waypoint_index += 1
 
         # Slow down vehicle by very simple step function
         if enable_slow_down:
@@ -120,6 +127,7 @@ class WaypointUpdater(object):
         # Waypoints need to be received just once!
         if self.waypoints is None:
             self.waypoints = waypoints.waypoints
+            self.max_waypoint_index = len(self.waypoints) - 1
             rospy.loginfo('Waypoints received!')
             self.base_waypoints_sub.unregister()
 
@@ -166,6 +174,9 @@ class WaypointUpdater(object):
         if (abs(yaw - heading)) > (math.pi / 4):
             # Waypoint is behind so use the next one
             closest_wp += 1
+            if closest_wp > self.max_waypoint_index:
+                # Next waypoint is in next lap so reset index
+                closest_wp = 0
 
         # Return the closest waypoint ahead
         return closest_wp

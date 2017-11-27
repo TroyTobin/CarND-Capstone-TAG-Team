@@ -221,20 +221,30 @@ class TLDetector(object):
 
             #TODO find the closest visible traffic light (if one exists)
             # Find closest TL waypoint to car's current waypoint.
-            # Use brute-force method as there are just 8 TLs to be checked.
-            min_dist_tl_car = 100000
-            next_tl_wp = -1
-            next_tl_id = -1
+            # 1. Calculate distances towards all TLs
+            dist_tl_car = []
             for i in range(len(self.tl_waypoints)):
-                dist_tl_car = self.tl_waypoints[i] - car_position
-                if dist_tl_car > 0 and dist_tl_car < min_dist_tl_car:
-                    min_dist_tl_car = dist_tl_car
-                    next_tl_wp = self.tl_waypoints[i]
-                    next_tl_id = i
+                dist_tl_car.append(self.tl_waypoints[i] - car_position)
+
+            # 2. Check if the max distance is negative. This means we're at the
+            # end of ther waypoint list and the next TL is the first one in the
+            # waypoint list
+            max_tl_dist = max(i for i in dist_tl_car if i != 0)
+            if max_tl_dist < 0:
+                 # We're at the end of ther waypoint list and the next TL
+                 # is the first one in the
+                closest_dist = max_tl_dist
+            else:
+                # Next TL is the one with the min distance
+                closest_dist = min(i for i in dist_tl_car if i > 0)
+
+            # 3. Use min distance to get TL waypoint
+            next_tl_id = dist_tl_car.index(closest_dist)
+            next_tl_wp = self.tl_waypoints[next_tl_id]
 
             # For sim only - use ground truth data
             light = self.lights[next_tl_id]
-            #print 'Car wp {}, next TL wp {}, state {}'.format(car_position, next_tl_wp, tl_state_text[light.state])
+            # print 'Car wp {}, next TL wp {}, state {}'.format(car_position, next_tl_wp, tl_state_text[light.state])
 
         if light:
             state = self.get_light_state(light)
