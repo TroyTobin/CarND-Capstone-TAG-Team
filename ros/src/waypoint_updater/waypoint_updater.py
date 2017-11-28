@@ -45,11 +45,11 @@ class WaypointUpdater(object):
         # Save next red traffic light waypoint
         self.red_tl_wp = None
 
-        rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
+        #rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
 
         # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
-        rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb, queue_size=1)
+        #rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb, queue_size=1)
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
@@ -114,10 +114,9 @@ class WaypointUpdater(object):
             for i in range(length_final_wp):
                 j += 1
                 final_waypoints.waypoints[-1-i].twist.twist.linear.x -= final_waypoints.waypoints[-1-i].twist.twist.linear.x * factor
-                if j == (LOOKAHEAD_WPS/10.0):
+                if j == 5:
                     j = 0
-                    factor -= 0.2
-
+                    factor -= 0.1
 
         # Publish the complete waypoint list
         self.final_waypoints_pub.publish(final_waypoints)
@@ -130,6 +129,9 @@ class WaypointUpdater(object):
             self.max_waypoint_index = len(self.waypoints) - 1
             rospy.loginfo('Waypoints received!')
             self.base_waypoints_sub.unregister()
+
+            rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
+            rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb, queue_size=1)
 
     def closest_waypoint(self, waypoints, pose):
         # Init vars to capture closest waypoint
