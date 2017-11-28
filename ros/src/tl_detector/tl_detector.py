@@ -15,7 +15,7 @@ import math
 
 
 # Classifier has to return this number of times the same state in order to be used
-STATE_COUNT_THRESHOLD = 3
+STATE_COUNT_THRESHOLD = 2
 
 
 # Create a structure similar to hwat is used in styx msg so TL stop_line_positions
@@ -41,7 +41,7 @@ class TLDetector(object):
         # Save traffic lights/stop line positions as waypoints
         self.tl_waypoints= []
 
-        sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
+        #sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         self.sub2 = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
 
         '''
@@ -51,8 +51,8 @@ class TLDetector(object):
         simulator. When testing on the vehicle, the color state will not be available. You'll need to
         rely on the position of the light and the camera image to predict it.
         '''
-        sub3 = rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_cb)
-        sub6 = rospy.Subscriber('/image_color', Image, self.image_cb)
+        #sub3 = rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_cb)
+        #sub6 = rospy.Subscriber('/image_color', Image, self.image_cb)
 
         config_string = rospy.get_param("/traffic_light_config")
         self.config = yaml.load(config_string)
@@ -100,6 +100,11 @@ class TLDetector(object):
             # Waypoints are received and are not updated again
             self.sub2.unregister()
 
+            # start all subscribers
+            rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
+            rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_cb)
+            rospy.Subscriber('/image_color', Image, self.image_cb)
+
     def traffic_cb(self, msg):
         self.lights = msg.lights
 
@@ -112,7 +117,7 @@ class TLDetector(object):
 
         """
         # Process image if waypoints have been received
-        if self.waypoints is not None:
+        if self.waypoints is not None and self.tl_waypoints is not None:
             self.has_image = True
             self.camera_image = msg
             light_wp, state = self.process_traffic_lights()
@@ -244,7 +249,7 @@ class TLDetector(object):
 
             # For sim only - use ground truth data
             light = self.lights[next_tl_id]
-            # print 'Car wp {}, next TL wp {}, state {}'.format(car_position, next_tl_wp, tl_state_text[light.state])
+            #print 'Car wp {}, next TL wp {}, state {}'.format(car_position, next_tl_wp, tl_state_text[light.state])
 
         if light:
             state = self.get_light_state(light)
