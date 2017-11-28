@@ -13,14 +13,14 @@ class Controller(object):
         # Init yaw controller with values from DBW node init
         self.yaw_controller = YawController(args[0],    # wheel_base
                                             args[1],    # steer_ratio
-                                            ONE_MPH,    # min_speed
+                                            3 * ONE_MPH,    # min_speed
                                             args[2],    # max_lat_accel
                                             args[3])    # max_steer_angle
 
         # Init throttle controller with values from DBW node init
         self.throttle_controller = PID(0.3,     # kp
-                                       0.005,    # ki
-                                       0.03,     # kd
+                                       0.0,     # ki
+                                       0.001,   # kd
                                        args[4], # decel_limit
                                        args[5]) # accel_limit
 
@@ -52,35 +52,40 @@ class Controller(object):
 
         if dbw_enabled:
             if self.prev_time is not None and current_time != self.prev_time:
-                # Calculate time between samples
-                sample_time = current_time - self.prev_time
-
-                # Get velocity adjustment from throttle controller
-                velocity_adjust = self.throttle_controller.step(velocity_error,
-                                                                sample_time)
-
-                # Set throttle or brake according to sign of velocity adjustment
-                if velocity_adjust > 0:
-                    throttle = velocity_adjust
-                    if velocity_error < 0:
-                        # When the error is negative, we're too fast
-                        # so we shouldn't accelerate!
-                        throttle = 0.0
+                if proposed_velocity_linear_x == 0 and current_velocity_linear_x < 0.01:
+                        self.throttle_controller.reset()
+                        #rospy.logwarn("Reset PID")
                 else:
-                    brake = velocity_adjust * self.max_brake_torque
+                    # Calculate time between samples
+                    sample_time = current_time - self.prev_time
 
-                # Get steering from yaw controller
-                steering = self.yaw_controller.get_steering(proposed_velocity_linear_x,
-                                                            proposed_velocity_angular_z,
-                                                            current_velocity_linear_x)
+                    # Get velocity adjustment from throttle controller
+                    velocity_adjust = self.throttle_controller.step(velocity_error,
+                                                                    sample_time)
 
-                # rospy.logwarn('prop {:7.2f}, curr {:7.2f} err {:7.2f}, adj {:7.2f}, throttle {:7.2f}, brake {:7.2f}'.format(
-                #               proposed_velocity_linear_x,
-                #               current_velocity_linear_x,
-                #               velocity_error,
-                #               velocity_adjust,
-                #               throttle,
-                #               brake))
+                    # Set throttle or brake according to sign of velocity adjustment
+                    if velocity_adjust > 0:
+                        throttle = velocity_adjust
+                        if velocity_error < 0:
+                            # When the error is negative, we're too fast
+                            # so we shouldn't accelerate!
+                            throttle = 0.0
+                            brake = velocity_adjust * self.max_brake_torque
+                    else:
+                        brake = velocity_adjust * self.max_brake_torque
+
+                    # Get steering from yaw controller
+                    steering = self.yaw_controller.get_steering(proposed_velocity_linear_x,
+                                                                proposed_velocity_angular_z,
+                                                                current_velocity_linear_x)
+
+                    # rospy.logwarn('prop {:7.2f}, curr {:7.2f} err {:7.2f}, adj {:7.2f}, throttle {:7.2f}, brake {:7.2f}'.format(
+                    #               proposed_velocity_linear_x,
+                    #               current_velocity_linear_x,
+                    #               velocity_error,
+                    #               velocity_adjust,
+                    #               throttle,
+                    #               brake))
 
         # Save current time for next iteration
         self.prev_time = current_time
