@@ -238,17 +238,18 @@ class TLDetector(object):
             if max_tl_dist < 0:
                  # We're at the end of ther waypoint list and the next TL
                  # is the first one in the
-                closest_dist = max_tl_dist
+                next_tl_id = 0
             else:
                 # Next TL is the one with the min distance
                 closest_dist = min(i for i in dist_tl_car if i > 0)
+                next_tl_id = dist_tl_car.index(closest_dist)
 
             # 3. Use min distance to get TL waypoint
-            next_tl_id = dist_tl_car.index(closest_dist)
             next_tl_wp = self.tl_waypoints[next_tl_id]
 
             # For sim only - use ground truth data
             light = self.lights[next_tl_id]
+            # All TL wp [292, 753, 2047, 2580, 6294, 7008, 8540, 9733]
             #print 'Car wp {}, next TL wp {}, state {}'.format(car_position, next_tl_wp, tl_state_text[light.state])
 
         if light:
