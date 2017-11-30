@@ -130,7 +130,9 @@ class WaypointUpdater(object):
             rospy.loginfo('Waypoints received!')
             self.base_waypoints_sub.unregister()
 
-            rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
+            # Set queue sizes to 1 to process only the latest message.
+            # If it's not 1 slower PCs are getting behind and the car drive off.
+            rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb, queue_size=1)
             rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb, queue_size=1)
 
     def closest_waypoint(self, waypoints, pose):
