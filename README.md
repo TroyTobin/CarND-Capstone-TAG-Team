@@ -5,14 +5,16 @@ Working:
 * TL detector publishes next red traffic light
 * TL state is currently taken from simulator ground truth
 * Stopping at red TLs (brake torque corrected - works with simple step function)
+* Waypoint/TL ID handling for 2nd lap completed (although it's not required as car is meant to stop after one lap).
+* Simulator + ROS also running on slower machines. Achieved by reducing the queue size of current_pose topic to 1, so the waypoint updater is only processing the latest message.
 
 To be done:
 1. TL classifier
-2. Fine tuning, smoothing of acceleration and braking and maybe steering
-3. Fix waypoint ID handling for 2nd lap (fix wrapping)
+2. ~~Fine tuning, smoothing of acceleration and braking and maybe steering~~ Looks like car is within all parameter limits. Needs confirmation from reviewer.
+
 
 Open questions:
-1. How do we decide if the next TL is visible? Just by comparing the distance of the car to the next TL?
+1. What's the distance car -> next TL we want to use to engage the TL classifier?
 
 ----
 
