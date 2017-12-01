@@ -114,7 +114,7 @@ class WaypointUpdater(object):
             for i in range(length_final_wp):
                 j += 1
                 final_waypoints.waypoints[-1-i].twist.twist.linear.x -= final_waypoints.waypoints[-1-i].twist.twist.linear.x * factor
-                if j == 5:
+                if j == 4:
                     j = 0
                     factor -= 0.1
 
