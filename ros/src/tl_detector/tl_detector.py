@@ -37,6 +37,8 @@ class TLDetector(object):
 
         # Save all waypoints
         self.waypoints = None
+        # Init search distance
+        self.search_distance = None
 
         # Save traffic lights/stop line positions as waypoints
         self.tl_waypoints= []
@@ -82,6 +84,9 @@ class TLDetector(object):
         if self.waypoints is None:
             # Save waypoints
             self.waypoints = waypoints.waypoints
+            # Set search distance
+            linear_v = self.waypoints[len(self.waypoints)/2].twist.twist.linear.x
+            self.search_distance = int(math.ceil(0.5 * linear_v * linear_v))
 
             # List of positions that correspond to the line to stop in front of for a given intersection
             stop_line_positions = self.config['stop_line_positions']
@@ -233,8 +238,6 @@ class TLDetector(object):
 
         if(self.pose):
             car_position = self.get_closest_waypoint(self.waypoints, self.pose.pose)
-            linear_v = self.waypoints[car_position].twist.twist.linear.x
-            search_distance = int(math.ceil(0.5 * linear_v * linear_v))
             #TODO find the closest visible traffic light (if one exists)
             # Find closest TL waypoint to car's current waypoint.
             # 1. Calculate distances towards all TLs
@@ -258,7 +261,7 @@ class TLDetector(object):
                     next_tl_id = dist_tl_car.index(closest_dist)
 
                 # 3. Use min distance to get TL waypoint
-                if closest_dist <= search_distance:
+                if closest_dist <= self.search_distance:
                     next_tl_wp = self.tl_waypoints[next_tl_id]
                     light = self.lights[next_tl_id]
                     state = light.state
