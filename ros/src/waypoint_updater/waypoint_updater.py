@@ -152,7 +152,6 @@ class WaypointUpdater(object):
                 self.set_waypoint_velocity(final_waypoints.waypoints, i, self.speed)
                 prev_waypoint = waypoint
 
-
         # Publish the complete waypoint list
         self.final_waypoints_pub.publish(final_waypoints)
 
