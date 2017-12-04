@@ -27,8 +27,9 @@ as well as to verify your TL classifier.
 TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
-LOOKAHEAD_WPS = 50 # Number of waypoints we will publish. You can change this number
-
+LOOKAHEAD_WPS  = 50     # Number of waypoints we will publish. You can change this number
+MIN_ZERO_WP    = 5      # Need a few zero WP to allow the vehilce to stop in time
+MAX_ACCEL      = 1.5    # Acceleration/Deceleration m/s/s
 
 class WaypointUpdater(object):
     def __init__(self):
@@ -44,6 +45,7 @@ class WaypointUpdater(object):
 
         # Save next red traffic light waypoint
         self.red_tl_wp = None
+        self.speed = 0.0
 
         #rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
@@ -106,17 +108,49 @@ class WaypointUpdater(object):
             else:
                 waypoint_index += 1
 
+
+        steps = final_wp - next_wp
+        indexes = range(steps)
+
         # Slow down vehicle by very simple step function
         if enable_slow_down:
-            length_final_wp = final_wp - next_wp
-            factor = 1.0
-            j = 0
-            for i in range(length_final_wp):
-                j += 1
-                final_waypoints.waypoints[-1-i].twist.twist.linear.x -= final_waypoints.waypoints[-1-i].twist.twist.linear.x * factor
-                if j == 4:
-                    j = 0
-                    factor -= 0.1
+            # want to start at the traffic light and work way back to current speed
+            indexes.reverse()
+            self.speed = 0
+
+            prev_waypoint = None
+            zero_speed_count = 0
+            for i in indexes:
+                waypoint = final_waypoints.waypoints[i]
+
+                # distance between waypoints 
+                if prev_waypoint is None:
+                    pass
+                elif zero_speed_count < MIN_ZERO_WP:
+                    # set the waypoints near the TL to zero
+                    # need a few to make the car stop before the TL
+                    zero_speed_count += 1
+                elif self.speed < self.target_velocity:
+                    self.speed = self.Accelerate(waypoint, prev_waypoint, self.speed, self.target_velocity, MAX_ACCEL);
+
+                self.set_waypoint_velocity(final_waypoints.waypoints, i, self.speed)
+                prev_waypoint = waypoint
+        else:
+            # either speed up or coast
+            prev_waypoint = None
+
+            for i in indexes:
+                waypoint = final_waypoints.waypoints[i]
+                if prev_waypoint is None:
+                    pass
+                elif self.speed < self.target_velocity:
+                    self.speed = self.Accelerate(waypoint, prev_waypoint, self.speed, self.target_velocity, MAX_ACCEL);
+                else:
+                    # we have reached the target velocity so no more accelerating to do
+                    break
+
+                self.set_waypoint_velocity(final_waypoints.waypoints, i, self.speed)
+                prev_waypoint = waypoint
 
         # Publish the complete waypoint list
         self.final_waypoints_pub.publish(final_waypoints)
@@ -129,6 +163,10 @@ class WaypointUpdater(object):
             self.max_waypoint_index = len(self.waypoints) - 1
             rospy.loginfo('Waypoints received!')
             self.base_waypoints_sub.unregister()
+
+            self.target_velocity = 0.0
+            for i in range(len(self.waypoints)):
+                self.target_velocity  = max(self.target_velocity, self.get_waypoint_velocity(self.waypoints[i]))
 
             # Set queue sizes to 1 to process only the latest message.
             # If it's not 1 slower PCs are getting behind and the car drive off.
@@ -192,6 +230,8 @@ class WaypointUpdater(object):
         else:
             self.red_tl_wp = None
 
+
+
     def obstacle_cb(self, msg):
         # TODO: Callback for /obstacle_waypoint message. We will implement it later
         pass
@@ -210,6 +250,16 @@ class WaypointUpdater(object):
         #    dist += dl(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position)
         #    wp1 = i
         return dist
+
+    def Accelerate(self, waypoint, prev_waypoint, speed, target_speed, max_accel):
+        # Calculate the speed at each waypoint taking into account the allowable acceleration/deceleration
+        distance = self.distance(waypoint.pose.pose.position, prev_waypoint.pose.pose.position)
+        # update next speed based on MAX Acceleration/Deceleration and d = vt + 0.5at**2
+        time_to_waypoint = 2*distance/(speed + math.sqrt(speed**2 + 2*max_accel*distance))
+        speed = speed + max_accel*time_to_waypoint
+        if speed > target_speed:
+            speed = target_speed
+        return speed
 
 
 if __name__ == '__main__':
