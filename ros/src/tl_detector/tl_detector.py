@@ -12,14 +12,14 @@ import tf
 import cv2
 import yaml
 import math
-
+import rospy
 
 # Classifier has to return this number of times the same state in order to be used
 STATE_COUNT_THRESHOLD = 2
 
 
-# Create a structure similar to hwat is used in styx msg so TL stop_line_positions
-# can be represented in the same format
+# Create a structure similar to what is used in styx msg so TL
+# stop_line_positions can be represented in the same format
 position = namedtuple('position', 'x y z')
 pose_token = namedtuple('pose_token', ['position'])
 
@@ -84,11 +84,13 @@ class TLDetector(object):
         if self.waypoints is None:
             # Save waypoints
             self.waypoints = waypoints.waypoints
+
             # Set search distance
             linear_v = self.waypoints[len(self.waypoints)/2].twist.twist.linear.x
             self.search_distance = int(math.ceil(0.5 * linear_v * linear_v))
 
-            # List of positions that correspond to the line to stop in front of for a given intersection
+            # List of positions that correspond to the line to stop in front
+            # of for a given intersection
             stop_line_positions = self.config['stop_line_positions']
 
             # Map all TLs to a styx msg structure
@@ -103,16 +105,13 @@ class TLDetector(object):
             for i in range(len(stop_line_positions)):
                 self.tl_waypoints.append(self.get_closest_waypoint(self.waypoints, tl_pose[i]))
 
-            # print 'tl waypoint {}, total {}'.format(i, len(self.waypoints))
-            # print self.tl_waypoints
-
             # Waypoints are received and are not updated again
             self.sub2.unregister()
 
             # start all subscribers
-            rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
-            rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_cb)
-            rospy.Subscriber('/image_color', Image, self.image_cb)
+            rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb, queue_size=1)
+            rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_cb, queue_size=1)
+            rospy.Subscriber('/image_color', Image, self.image_cb, queue_size=1)
 
     def traffic_cb(self, msg):
         self.lights = msg.lights
@@ -232,10 +231,6 @@ class TLDetector(object):
         next_tl_wp = -1
         state = TrafficLight.UNKNOWN
 
-        # List of positions that correspond to the line to stop in front of for a given intersection
-        # --> moved to waypoints_cb()
-        # stop_line_positions = self.config['stop_line_positions']
-
         if(self.pose):
             car_position = self.get_closest_waypoint(self.waypoints, self.pose.pose)
             #TODO find the closest visible traffic light (if one exists)
@@ -270,14 +265,13 @@ class TLDetector(object):
                 # We'll get here when car wp = tl wp
                 pass
 
-            # # All TL wp [292, 753, 2047, 2580, 6294, 7008, 8540, 9733]
-            # print 'Car wp {}, next TL wp {}, state {}'.format(car_position, next_tl_wp, tl_state_text[state])
+            rospy.logdebug('Car wp {}, next TL wp {}, state {}'.format(
+                           car_position, next_tl_wp, tl_state_text[state]))
 
         if light:
             state = self.get_light_state(light)
             return next_tl_wp, state
 
-        #self.waypoints = None
         return -1, TrafficLight.UNKNOWN
 
 if __name__ == '__main__':

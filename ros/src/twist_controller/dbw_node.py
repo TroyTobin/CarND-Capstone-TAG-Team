@@ -33,7 +33,7 @@ that we have created in the `__init__` function.
 
 class DBWNode(object):
     def __init__(self):
-        rospy.init_node('dbw_node', log_level=rospy.INFO)
+        rospy.init_node('dbw_node')
 
         vehicle_mass    = rospy.get_param('~vehicle_mass', 1736.35)
         fuel_capacity   = rospy.get_param('~fuel_capacity', 13.5)
@@ -72,8 +72,8 @@ class DBWNode(object):
 
         # TODO: Subscribe to all the topics you need to 
         rospy.Subscriber("/current_velocity", TwistStamped, self.current_velocity_cb, queue_size=1)
-        rospy.Subscriber("/twist_cmd", TwistStamped, self.twist_cb)
-        rospy.Subscriber("/vehicle/dbw_enabled", Bool, self.dbw_enable_cb)
+        rospy.Subscriber("/twist_cmd", TwistStamped, self.twist_cb, queue_size=1)
+        rospy.Subscriber("/vehicle/dbw_enabled", Bool, self.dbw_enable_cb, queue_size=1)
 
         self.loop()
 
@@ -97,11 +97,11 @@ class DBWNode(object):
                                                                     self.current_velocity.linear.x,
                                                                     self.dbw_enabled)
 
-                # rospy.logwarn('trottle {:7.2f}, brake {:7.2f}, prop {:7.2f}, curr {:7.2f}'.format(
-                #               throttle,
-                #               brake,
-                #               self.proposed_velocity.linear.x,
-                #               self.current_velocity.linear.x))
+                rospy.logdebug('trottle {:7.2f}, brake {:7.2f}, prop {:7.2f}, curr {:7.2f}'.format(
+                               throttle,
+                               brake,
+                               self.proposed_velocity.linear.x,
+                               self.current_velocity.linear.x))
 
                 if self.dbw_enabled:
                     # Publish new values
@@ -115,20 +115,20 @@ class DBWNode(object):
         tcmd.enable = True
         tcmd.pedal_cmd_type = ThrottleCmd.CMD_PERCENT
         tcmd.pedal_cmd = throttle
-        #rospy.loginfo('Throttle: {}'.format(throttle))
+        rospy.logdebug('Throttle: {}'.format(throttle))
         self.throttle_pub.publish(tcmd)
 
         scmd = SteeringCmd()
         scmd.enable = True
         scmd.steering_wheel_angle_cmd = steer
-        #rospy.loginfo('Steer: {}'.format(steer))
+        rospy.logdebug('Steer: {}'.format(steer))
         self.steer_pub.publish(scmd)
 
         bcmd = BrakeCmd()
         bcmd.enable = True
         bcmd.pedal_cmd_type = BrakeCmd.CMD_TORQUE
         bcmd.pedal_cmd = brake
-        #rospy.loginfo('Brake: {}'.format(brake))
+        rospy.logdebug('Brake: {}'.format(brake))
         self.brake_pub.publish(bcmd)
 
     def dbw_enable_cb(self, msg):

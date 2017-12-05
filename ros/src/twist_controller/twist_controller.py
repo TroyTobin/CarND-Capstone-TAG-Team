@@ -4,18 +4,18 @@ ONE_MPH = 0.44704
 
 import rospy
 
-from  yaw_controller import YawController
+from yaw_controller import YawController
 from pid import PID
 
 class Controller(object):
     def __init__(self, *args, **kwargs):
         # TODO: Implement
         # Init yaw controller with values from DBW node init
-        self.yaw_controller = YawController(args[0],    # wheel_base
-                                            args[1],    # steer_ratio
-                                            3 * ONE_MPH,    # min_speed
-                                            args[2],    # max_lat_accel
-                                            args[3])    # max_steer_angle
+        self.yaw_controller = YawController(args[0],      # wheel_base
+                                            args[1],      # steer_ratio
+                                            3 * ONE_MPH,  # min_speed
+                                            args[2],      # max_lat_accel
+                                            args[3])      # max_steer_angle
 
         # Init throttle controller with values from DBW node init
         self.throttle_controller = PID(0.3,     # kp
@@ -44,7 +44,7 @@ class Controller(object):
         brake    = 0.0
         steering = 0.0
 
-        # Compute difference between target and current velocity as CTE for throttle. 
+        # Compute difference between target and current velocity as error for throttle
         velocity_error = proposed_velocity_linear_x - current_velocity_linear_x
 
         # Get current time in ROS
@@ -54,7 +54,7 @@ class Controller(object):
             if self.prev_time is not None and current_time != self.prev_time:
                 if proposed_velocity_linear_x == 0 and current_velocity_linear_x < 0.01:
                         self.throttle_controller.reset()
-                        #rospy.logwarn("Reset PID")
+                        rospy.logdebug("Reset PID")
                 else:
                     # Calculate time between samples
                     sample_time = current_time - self.prev_time
@@ -79,13 +79,13 @@ class Controller(object):
                                                                 proposed_velocity_angular_z,
                                                                 current_velocity_linear_x)
 
-                    # rospy.logwarn('prop {:7.2f}, curr {:7.2f} err {:7.2f}, adj {:7.2f}, throttle {:7.2f}, brake {:7.2f}'.format(
-                    #               proposed_velocity_linear_x,
-                    #               current_velocity_linear_x,
-                    #               velocity_error,
-                    #               velocity_adjust,
-                    #               throttle,
-                    #               brake))
+                    rospy.logdebug('prop {:7.2f}, curr {:7.2f} err {:7.2f}, adj {:7.2f}, throttle {:7.2f}, brake {:7.2f}'.format(
+                                  proposed_velocity_linear_x,
+                                  current_velocity_linear_x,
+                                  velocity_error,
+                                  velocity_adjust,
+                                  throttle,
+                                  brake))
 
         # Save current time for next iteration
         self.prev_time = current_time
