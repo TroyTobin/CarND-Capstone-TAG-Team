@@ -1,3 +1,25 @@
+## TAG Team - Capstone Project - Udacity Self-Driving Car Engineer
+
+This repository contains the results of TAG Team's capstone project for the [Udacity Self-Driving Car Engineer Nanodegree Program](https://www.udacity.com/drive). The project utilizes Ubuntu Linux 16.04 with ROS Kinetic ([Robot Operating System](https://www.ros.org)), the [Udacity System Integration Simulator](https://github.com/udacity/CarND-Capstone/releases). Skeleton code cloned from Udacity (https://github.com/udacity/CarND-Capstone), code written in C++ and Python to provide a system integration solution to the self-driving car problem. The code developed will be tested on Udacity's real-world test vehicle (a Lincoln MKZ named "Carla").
+
+----
+
+#### Current simulator performance on YouTube:
+[![YouTube]
+
+----
+
+## Team Members
+|     Name    |      Location     |     LinkedIn     |          |
+|-------------|-------------------|------------------|----------|
+| Martin Hintz (**Team Lead**) | Adelaide, Australia | [linkedin.com/in/martinhintz](https://www.linkedin.com/in/martinhintz/) |  |
+| Troy Tobin | Adelaide, Australia | [linkedin.com/in/troy-tobin-36a3b366](https://www.linkedin.com/in/troy-tobin-36a3b366/) |
+| Jefferson Hernández | Colombia |  |
+| Bogdan Oloeriu | Liège Area, Belgium | [linkedin.com/in/bogdan-oloeriu-25291868](https://www.linkedin.com/in/bogdan-oloeriu-25291868/) |
+| Charan Karthikeyan | Pittsburgh, USA | [linkedin.com/in/charan-karthikeyan-11b71b104](https://www.linkedin.com/in/charan-karthikeyan-11b71b104/) |
+
+----
+
 ## TAG Team Repo Status
 Working:
 * Car is driving along the waypoints
@@ -11,7 +33,7 @@ Working:
 * Fine tuning, smoothing of acceleration and braking and maybe steering. Looks like car is within all parameter limits. Needs confirmation from reviewer.
 
 To be done:
--/-
+* -/-
 
 Open questions:
 1. What's the distance car -> next TL we want to use to engage the TL classifier? **Answer:** The distance is calculated according to the car's proposed linear velocity: ```int(math.ceil(0.5 * linear_v * linear_v))```. For the simulator, the distance is 62, for site mode it's 4.
