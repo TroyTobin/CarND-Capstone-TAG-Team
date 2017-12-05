@@ -12,7 +12,7 @@ This repository contains the results of TAG Team's capstone project for the [Uda
 ## Team Members
 |     Name    |      Location     |     LinkedIn     |          |
 |-------------|-------------------|------------------|----------|
-| Martin Hintz <br>(**Team Lead**) | Adelaide, Australia | [linkedin.com/in/martinhintz](https://www.linkedin.com/in/martinhintz/) |  |
+| Martin Hintz <br>(**Team Lead**) | Adelaide, Australia | [linkedin.com/in/martinhintz](https://www.linkedin.com/in/martinhintz/) | <img src="./imgs/martin.jpg" alt="Martin"> |
 | Troy Tobin | Adelaide, Australia | [linkedin.com/in/troy-tobin-36a3b366](https://www.linkedin.com/in/troy-tobin-36a3b366/) | <img src="./imgs/troy.jpg" alt="Troy"> |
 | Jefferson Hernández | Colombia |  |
 | Bogdan Oloeriu | Liège Area, Belgium | [linkedin.com/in/bogdan-oloeriu-25291868](https://www.linkedin.com/in/bogdan-oloeriu-25291868/) | <img src="./imgs/bogdan.jpg" alt="Bogdan"> |
