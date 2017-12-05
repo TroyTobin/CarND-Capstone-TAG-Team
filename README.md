@@ -5,7 +5,7 @@ This repository contains the results of TAG Team's capstone project for the [Uda
 ----
 
 #### Current simulator performance on YouTube:
-[![YouTube]
+[![YouTube](./imgs/youtube.jpg)](https://www.youtube.com/watch?v=tCO0b6EGY7o)
 
 ----
 
