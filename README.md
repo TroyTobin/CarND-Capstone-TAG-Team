@@ -29,7 +29,7 @@ Working:
 * Stopping at red TLs (brake torque corrected - works with simple step function)
 * Waypoint/TL ID handling for 2nd lap completed (although it's not required as car is meant to stop after one lap).
 * Simulator + ROS also running on slower machines. Achieved by reducing the queue size of current_pose topic to 1, so the waypoint updater is only processing the latest message.
-* TL classifier (from Bogdan, commit Dec 1, 56ac2b7...)
+* TL classifier (from [Bogdan's Deep-Lights repo](https://github.com/bogdan-marian/deep-lights ), commit Dec 1, 56ac2b7...)
 * Fine tuning, smoothing of acceleration and braking and maybe steering. Looks like car is within all parameter limits. Needs confirmation from reviewer.
 
 To be done:
@@ -37,6 +37,11 @@ To be done:
 
 Open questions:
 1. What's the distance car -> next TL we want to use to engage the TL classifier? **Answer:** The distance is calculated according to the car's proposed linear velocity: ```int(math.ceil(0.5 * linear_v * linear_v))```. For the simulator, the distance is 62, for site mode it's 4.
+
+----
+
+## Traffic Light Classification
+Details on the traffic light classification, which is using deep learning methods, can be found in the following repo: https://github.com/bogdan-marian/deep-lights 
 
 ----
 
