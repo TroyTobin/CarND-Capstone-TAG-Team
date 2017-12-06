@@ -14,7 +14,7 @@ This repository contains the results of TAG Team's capstone project for the [Uda
 |-------------|-------------------|------------------|----------|
 | Martin Hintz <br>(**Team Lead**) | Adelaide, Australia | [linkedin.com/in/martinhintz](https://www.linkedin.com/in/martinhintz/) | <img src="./imgs/martin.jpg" alt="Martin"> |
 | Troy Tobin | Adelaide, Australia | [linkedin.com/in/troy-tobin-36a3b366](https://www.linkedin.com/in/troy-tobin-36a3b366/) | <img src="./imgs/troy.jpg" alt="Troy"> |
-| Jefferson Hernández | Colombia |  |
+| Jefferson Hernández | Bogotá, Colombia | [linkedin.com/in/jeffersonh44](https://www.linkedin.com/in/jeffersonh44/) | <img src="./imgs/jefferson.jpg" alt="Jefferson"> |
 | Bogdan Oloeriu | Liège Area, Belgium | [linkedin.com/in/bogdan-oloeriu-25291868](https://www.linkedin.com/in/bogdan-oloeriu-25291868/) | <img src="./imgs/bogdan.jpg" alt="Bogdan"> |
 | Charan Karthikeyan | Pittsburgh, USA | [linkedin.com/in/charan-karthikeyan-11b71b104](https://www.linkedin.com/in/charan-karthikeyan-11b71b104/) | <img src="./imgs/charan.jpg" alt="Charan"> |
 
