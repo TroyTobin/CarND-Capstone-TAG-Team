@@ -24,7 +24,7 @@ This repository contains the results of TAG Team's capstone project for the [Uda
 Working:
 * Car is driving along the waypoints
 * Car keeps reasonable speed
-* ROS Image pub sub example useful for testing TL classifier from [Troy's Repo] (https://github.com/TroyTobin/ROS_PubSub_Image)
+* ROS Image pub sub example useful for testing TL classifier from [Troy's Repo](https://github.com/TroyTobin/ROS_PubSub_Image)
 * TL detector publishes next red traffic light
 * TL state is currently taken from simulator ground truth
 * Stopping at red TLs (brake torque corrected - works with simple step function)
